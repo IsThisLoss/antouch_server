@@ -17,7 +17,7 @@ void accept_cb(struct ev_loop* loop, struct ev_io* acceptor, int revents);
 // add sigterm handler
 //
 // distant plans
-// add single muse click and buttons emulation
+// add all muse's clicks and buttons emulation
 int main(int argc, const char** argv)
 {
     int sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -43,12 +43,14 @@ void accept_cb(struct ev_loop* loop, struct ev_io* acceptor, int revents)
     struct ev_io* watcher = (struct ev_io*)malloc(sizeof(struct ev_io));
     ev_io_init(watcher, response_cb, socket, EV_READ);
     ev_io_start(loop, watcher);
+    printf("connected\n");
 }
 
 void response_cb(struct ev_loop* loop, struct ev_io* watcher, int revents)
 {
     char buff[512];
     ssize_t size = recv(watcher->fd, (void*)buff, sizeof(buff), MSG_NOSIGNAL);
+    write(STDOUT_FILENO, buff, size);
     if (size == 0)
     {
         ev_io_stop(loop, watcher);
@@ -59,8 +61,41 @@ void response_cb(struct ev_loop* loop, struct ev_io* watcher, int revents)
     {
         Display* display = XOpenDisplay(NULL);
         int x_offset = 0, y_offset = 0;
-        sscanf(buff, "%d %d", &x_offset, &y_offset);
-        XWarpPointer(display, None, None, 0, 0, 0, 0, x_offset, y_offset);
+        int tmp;
+        sscanf(buff, "%d %d %d", &tmp, &x_offset, &y_offset);
+        if (tmp == 1 || tmp == 3)
+        {
+            XEvent event;
+            event.xbutton.button = Button1;
+            event.xbutton.same_screen = True;
+            event.xbutton.subwindow = DefaultRootWindow (display);
+            while (event.xbutton.subwindow)
+            {
+                event.xbutton.window = event.xbutton.subwindow;
+                XQueryPointer (display, event.xbutton.window,
+                               &event.xbutton.root, &event.xbutton.subwindow,
+                               &event.xbutton.x_root, &event.xbutton.y_root,
+                               &event.xbutton.x, &event.xbutton.y,
+                               &event.xbutton.state);
+            }
+            //if (tmp == 1)
+            {
+                // Press
+                event.type = ButtonPress;
+                if (XSendEvent (display, PointerWindow, True, ButtonPressMask, &event) == 0)
+                    fprintf (stderr, "Error to send the event!\n");
+            }
+            //else
+            {
+                event.type = ButtonRelease;
+                if (XSendEvent (display, PointerWindow, True, ButtonReleaseMask, &event) == 0)
+                    fprintf (stderr, "Error to send the event!\n");
+            }
+        }
+        else
+        {
+            XWarpPointer(display, None, None, 0, 0, 0, 0, x_offset, y_offset);
+        }
         XFlush(display);
         XCloseDisplay(display);
     }
