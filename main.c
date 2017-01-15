@@ -1,10 +1,11 @@
 #include <stdio.h>
 #include <ev.h>
-#include <X11/Xlib.h>
 #include <sys/socket.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <netinet/in.h>
+
+#include "xlib_wrapper.h"
 
 // There are only testing functions for first try
 void response_cb(struct ev_loop* loop, struct ev_io* watcher, int revents);
@@ -12,7 +13,8 @@ void response_cb(struct ev_loop* loop, struct ev_io* watcher, int revents);
 void accept_cb(struct ev_loop* loop, struct ev_io* acceptor, int revents);
 
 // todo
-// to get rid of opening display every time when we've gotten new incoming message
+// [fixed, not tested] to get rid of opening display every time when we've gotten new incoming message
+//
 // replace TCP with UDP (if it's possible, I dunno)
 // add sigterm handler
 //
@@ -33,7 +35,10 @@ int main(int argc, const char** argv)
     ev_io_init(&acceptor, accept_cb, sock, EV_READ);
     ev_io_start(loop, &acceptor);
 
+    xlw_init();
+
     ev_run(loop, 0);
+    xlw_close();
     return 0;
 }
 
@@ -59,44 +64,11 @@ void response_cb(struct ev_loop* loop, struct ev_io* watcher, int revents)
     }
     else
     {
-        Display* display = XOpenDisplay(NULL);
-        int x_offset = 0, y_offset = 0;
-        int tmp;
-        sscanf(buff, "%d %d %d", &tmp, &x_offset, &y_offset);
-        if (tmp == 1 || tmp == 3)
-        {
-            XEvent event;
-            event.xbutton.button = Button1;
-            event.xbutton.same_screen = True;
-            event.xbutton.subwindow = DefaultRootWindow (display);
-            while (event.xbutton.subwindow)
-            {
-                event.xbutton.window = event.xbutton.subwindow;
-                XQueryPointer (display, event.xbutton.window,
-                               &event.xbutton.root, &event.xbutton.subwindow,
-                               &event.xbutton.x_root, &event.xbutton.y_root,
-                               &event.xbutton.x, &event.xbutton.y,
-                               &event.xbutton.state);
-            }
-            //if (tmp == 1)
-            {
-                // Press
-                event.type = ButtonPress;
-                if (XSendEvent (display, PointerWindow, True, ButtonPressMask, &event) == 0)
-                    fprintf (stderr, "Error to send the event!\n");
-            }
-            //else
-            {
-                event.type = ButtonRelease;
-                if (XSendEvent (display, PointerWindow, True, ButtonReleaseMask, &event) == 0)
-                    fprintf (stderr, "Error to send the event!\n");
-            }
-        }
+        int cmd = 0, dx = 0, dy = 0;
+        sscanf(buff, "%d %d %d", &cmd, &dx, &dy);
+        if (cmd == 1 || cmd == 3)
+            xlw_mouse_click();
         else
-        {
-            XWarpPointer(display, None, None, 0, 0, 0, 0, x_offset, y_offset);
-        }
-        XFlush(display);
-        XCloseDisplay(display);
+            xlw_mouse_move(dx, dy);
     }
 }
