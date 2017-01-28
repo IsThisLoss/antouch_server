@@ -13,7 +13,6 @@ void response_cb(struct ev_loop* loop, struct ev_io* watcher, int revents);
 void accept_cb(struct ev_loop* loop, struct ev_io* acceptor, int revents);
 
 // todo
-// [fixed, not tested] to get rid of opening display every time when we've gotten new incoming message
 //
 // replace TCP with UDP (if it's possible, I dunno)
 // add sigterm handler
