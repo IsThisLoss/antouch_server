@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <netinet/in.h>
+#include <signal.h>
 
 #include "xlib_wrapper.h"
 
@@ -13,15 +14,24 @@ void response_cb(struct ev_loop* loop, struct ev_io* watcher, int revents);
 void accept_cb(struct ev_loop* loop, struct ev_io* acceptor, int revents);
 
 // todo
-//
-// replace TCP with UDP (if it's possible, I dunno)
 // add sigterm handler
 //
 // distant plans
 // add all muse's clicks and buttons emulation
+
+void sig_term(int signum);
+
+int sock;
+struct ev_loop* loop;
+struct ev_io acceptor;
+
 int main(int argc, const char** argv)
 {
-    int sock = socket(AF_INET, SOCK_STREAM, 0);
+    struct sigaction act;
+    act.sa_handler = sig_term;
+    sigaction(SIGTERM, &act, NULL);
+
+    sock = socket(AF_INET, SOCK_STREAM, 0);
     struct sockaddr_in addr_in;
     addr_in.sin_family = AF_INET;
     addr_in.sin_addr.s_addr = INADDR_ANY;
@@ -29,15 +39,13 @@ int main(int argc, const char** argv)
     bind(sock, (struct sockaddr*)&addr_in, sizeof(addr_in));
     listen(sock, SOMAXCONN);
 
-    struct ev_loop* loop = ev_default_loop(0);
-    struct ev_io acceptor;
+    loop = ev_default_loop(0);
     ev_io_init(&acceptor, accept_cb, sock, EV_READ);
     ev_io_start(loop, &acceptor);
 
     xlw_init();
 
     ev_run(loop, 0);
-    xlw_close();
     return 0;
 }
 
@@ -65,9 +73,25 @@ void response_cb(struct ev_loop* loop, struct ev_io* watcher, int revents)
     {
         int cmd = 0, dx = 0, dy = 0;
         sscanf(buff, "%d %d %d", &cmd, &dx, &dy);
-        if (cmd == 1 || cmd == 3)
-            xlw_mouse_click();
-        else
+        /*
+         * 0 - move
+         * 1 - left
+         * 3 - right
+         * 2 - wheel
+         * 4 - wheel up
+         * 5 - wheel - down
+         */
+        if (cmd == 0)
             xlw_mouse_move(dx, dy);
+        else
+            xlw_mouse_click(cmd);
     }
+}
+
+void sig_term(int signum)
+{
+    xlw_close();
+    close(acceptor.fd);
+    ev_io_stop(loop, &acceptor);
+    ev_break(loop, EVBREAK_ALL);
 }

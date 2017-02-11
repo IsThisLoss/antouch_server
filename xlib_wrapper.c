@@ -3,53 +3,58 @@
 //
 
 #include <X11/Xlib.h>
-#include <stdlib.h>
-#include <stdio.h>
 #include "xlib_wrapper.h"
-
+#include <X11/extensions/XTest.h>
 static Display* display = NULL;
 static XEvent* click_event = NULL;
 
 void xlw_init()
 {
     display = XOpenDisplay(NULL);
-
-    click_event = (XEvent*)malloc(sizeof(XEvent));
 }
 
 void xlw_close()
 {
     XCloseDisplay(display);
-    free(click_event);
 }
 
 void xlw_mouse_move(int dx, int dy)
 {
-    XWarpPointer(display, None, None, 0, 0, 0, 0, dx, dy);
+    XTestFakeRelativeMotionEvent(display, dx, dy, 0);
     XFlush(display);
 }
 
-void xlw_mouse_click()
+void xlw_mouse_right_click()
 {
-    click_event->xbutton.button = Button1;
-    click_event->xbutton.same_screen = True;
-    click_event->xbutton.subwindow = DefaultRootWindow(display);
-    while (click_event->xbutton.subwindow)
-    {
-        click_event->xbutton.window = click_event->xbutton.subwindow;
-        XQueryPointer (display, click_event->xbutton.window,
-                       &click_event->xbutton.root, &click_event->xbutton.subwindow,
-                       &click_event->xbutton.x_root, &click_event->xbutton.y_root,
-                       &click_event->xbutton.x, &click_event->xbutton.y,
-                       &click_event->xbutton.state);
-    }
+    XEvent event;
+    /* Get the current pointer position */
+    XQueryPointer(display, RootWindow(display, 0), &event.xbutton.root,
+                  &event.xbutton.window, &event.xbutton.x_root,
+                  &event.xbutton.y_root, &event.xbutton.x, &event.xbutton.y,
+                  &event.xbutton.state);
 
+    XSync(display, 0);
 
-    click_event->type = ButtonPress;
-    if (XSendEvent (display, PointerWindow, True, ButtonPressMask, click_event) == 0)
-        fprintf(stderr, "Error to send the event!\n");
-    click_event->type = ButtonRelease;
-    if (XSendEvent (display, PointerWindow, True, ButtonReleaseMask, click_event) == 0)
-        fprintf (stderr, "Error to send the event!\n");
+    /* Fake the mouse button Press and Release events */
+    XTestFakeButtonEvent(display, 1, True,  CurrentTime);
+    XTestFakeButtonEvent(display, 1, False, CurrentTime);
+    XFlush(display);
+}
+
+void xlw_mouse_click(unsigned int button)
+{
+    XEvent event;
+    /* Get the current pointer position */
+    XQueryPointer(display, RootWindow(display, 0), &event.xbutton.root,
+                  &event.xbutton.window, &event.xbutton.x_root,
+                  &event.xbutton.y_root, &event.xbutton.x, &event.xbutton.y,
+                  &event.xbutton.state);
+
+    XSync(display, 0);
+
+    /* Fake the mouse button Press and Release events */
+    XTestFakeButtonEvent(display, button, True,  CurrentTime);
+    XTestFakeButtonEvent(display, button, False, CurrentTime);
+
     XFlush(display);
 }
