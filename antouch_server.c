@@ -113,7 +113,7 @@ void broadcast_cb(struct ev_loop* loop, struct ev_io* watcher, int revent)
     {
         const char* ip = get_ip_of_current_machine();
         //const char* ip = inet_ntoa(dest_addr.sin_addr);
-        printf("Current local ip is %s\n", ip);
+        printf("Current local ip is %s\n, len = %d\n", ip, strlen(ip)+1);
         sendto(watcher->fd, ip, strlen(ip)+1, MSG_NOSIGNAL, (struct sockaddr*)&dest_addr, len);
     }
 }
@@ -147,7 +147,7 @@ void response_cb(struct ev_loop* loop, struct ev_io* watcher, int revents)
         ev_io_start(loop, broadcast_watcher);
         //acceptor_init();
         //broadcast_acceptor_init();
-        printf("NET\tAcceptor has been restarted\n");
+        printf("NET\tAcceptor and Broadcast has been restarted\n");
     }
     else
     {
