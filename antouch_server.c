@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <ifaddrs.h>
+#include <errno.h>
 
 #include "antouch_server.h"
 #include "xlib_wrapper.h"
@@ -105,7 +106,8 @@ void broadcast_acceptor_close()
 void broadcast_cb(struct ev_loop* loop, struct ev_io* watcher, int revent)
 {
     struct sockaddr_in dest_addr;
-    socklen_t len;
+    memset(&dest_addr, 0x0,sizeof(dest_addr));
+    socklen_t len = sizeof(dest_addr);
     char buf[128];
     ssize_t s = recvfrom(watcher->fd, (void*)buf, sizeof(buf), MSG_NOSIGNAL,
                          (struct sockaddr*)&dest_addr, &len);
