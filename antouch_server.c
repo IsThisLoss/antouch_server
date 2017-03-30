@@ -156,21 +156,10 @@ void response_cb(struct ev_loop* loop, struct ev_io* watcher, int revents)
         unsigned int cmd = 0;
         int dx = 0, dy = 0;
         sscanf(buff, "%u %d %d", &cmd, &dx, &dy);
-        /*
-         * 0 - move
-         * 1 - left
-         * 3 - right
-         * 2 - wheel
-         * 4 - wheel up
-         * 5 - wheel - down
-         * 7 - Up
-         * 8 - Down
-         * 9 - Left
-         * 10 - Right
-         */
+
         if (cmd == 0)
             xlw_mouse_move(dx, dy);
-        else if (cmd >= 7)
+        else if (cmd >= 10)
             xlw_key_press(cmd);
         else
             xlw_mouse_click(cmd);

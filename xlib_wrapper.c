@@ -6,6 +6,8 @@
 #include <X11/extensions/XTest.h>
 
 #include "xlib_wrapper.h"
+#include <X11/keysym.h>
+#include <X11/XF86keysym.h>
 
 static Display* display = NULL;
 static XEvent* click_event = NULL;
@@ -61,14 +63,59 @@ void xlw_mouse_click(unsigned int button)
     XFlush(display);
 }
 
+// todo deal with types
+
+//https://bharathisubramanian.wordpress.com/2010/03/14/x11-fake-key-event-generation-using-xtest-ext/
+static void xlw_send_key_event(KeySym keySym, KeySym modSym)
+{
+    KeyCode keyCode = 0, modCode = 0;
+    keyCode = XKeysymToKeycode(display, keySym);
+
+    if (keyCode == 0)
+        return;
+
+    XTestGrabControl(display, True);
+
+    if (modSym != 0)
+    {
+        modCode = XKeysymToKeycode(display, modSym);
+        XTestFakeKeyEvent(display, modCode, True, CurrentTime);
+    }
+
+    XTestFakeKeyEvent(display, keyCode, True, CurrentTime);
+    XTestFakeKeyEvent(display, keyCode, False, CurrentTime);
+
+    if (modSym != 0)
+        XTestFakeKeyEvent(display, modCode, False, CurrentTime);
+
+    XSync(display, False);
+    XTestGrabControl(display, False);
+}
 
 //Here
 void xlw_key_press(unsigned int key_cmd)
 {
-    XEvent event;
-    int x = -1;
-
-    XTestFakeKeyEvent(display, (KeyCode)x, True, CurrentTime);
-    XTestFakeKeyEvent(display, (KeyCode)x, False, CurrentTime);
-    XFlush(display);
+    switch (key_cmd)
+    {
+        case 10:
+            xlw_send_key_event(XK_Up, 0);
+            break;
+        case 11:
+            xlw_send_key_event(XK_Down, 0);
+            break;
+        case 12:
+            xlw_send_key_event(XK_Left, 0);
+            break;
+        case 14:
+            xlw_send_key_event(XK_Right, 0);
+            break;
+        case 15:
+            xlw_send_key_event(XF86XK_AudioLowerVolume, 0);
+            break;
+        case 17:
+            xlw_send_key_event(XF86XK_AudioRaiseVolume, 0);
+            break;
+    }
 }
+
+
