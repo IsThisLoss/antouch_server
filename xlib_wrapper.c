@@ -118,4 +118,52 @@ void xlw_key_press(unsigned int key_cmd)
     }
 }
 
+void xlw_selection_mode()
+{
+    XEvent event;
+    /* Get the current pointer position */
+    XQueryPointer(display, RootWindow(display, 0), &event.xbutton.root,
+                  &event.xbutton.window, &event.xbutton.x_root,
+                  &event.xbutton.y_root, &event.xbutton.x, &event.xbutton.y,
+                  &event.xbutton.state);
 
+    XSync(display, 0);
+
+    /* Fake the mouse button Press and Release events */
+    XTestFakeButtonEvent(display, 1, True,  CurrentTime);
+
+    XFlush(display);
+}
+
+void xlw_test_up() {
+    XEvent event;
+    /* Get the current pointer position */
+    XQueryPointer(display, RootWindow(display, 0), &event.xbutton.root,
+                  &event.xbutton.window, &event.xbutton.x_root,
+                  &event.xbutton.y_root, &event.xbutton.x, &event.xbutton.y,
+                  &event.xbutton.state);
+
+    XSync(display, 0);
+
+    /* Fake the mouse button Press and Release events */
+    XTestFakeButtonEvent(display, 1, False,  CurrentTime);
+
+    XFlush(display);
+}
+
+void xlw_test_down() {
+    XEvent event;
+    /* Get the current pointer position */
+    XQueryPointer(display, RootWindow(display, 0), &event.xbutton.root,
+                  &event.xbutton.window, &event.xbutton.x_root,
+                  &event.xbutton.y_root, &event.xbutton.x, &event.xbutton.y,
+                  &event.xbutton.state);
+
+    XSync(display, 0);
+
+    /* Fake the mouse button Press and Release events */
+    XTestFakeButtonEvent(display, 1, True,  CurrentTime);
+
+    XFlush(display);
+
+}

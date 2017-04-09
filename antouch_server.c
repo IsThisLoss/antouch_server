@@ -157,6 +157,21 @@ void response_cb(struct ev_loop* loop, struct ev_io* watcher, int revents)
         int dx = 0, dy = 0;
         sscanf(buff, "%u %d %d", &cmd, &dx, &dy);
 
+
+        if (cmd == 88)
+            xlw_test_down();
+        else if (cmd == 885)
+            xlw_test_up();
+
+
+
+
+
+        if (cmd == 18)
+        {
+            xlw_selection_mode();
+            return;
+        }
         if (cmd == 0)
             xlw_mouse_move(dx, dy);
         else if (cmd >= 10)

@@ -18,5 +18,8 @@ void xlw_close();
 void xlw_mouse_move(int dx, int dy);
 void xlw_mouse_click(unsigned int button);
 void xlw_key_press(unsigned int key_cmd);
+void xlw_selection_mode();
+void xlw_test_down();
+void xlw_test_up();
 
 #endif //ANTOUCH_SERVER_XLIB_WRAPPER_H
