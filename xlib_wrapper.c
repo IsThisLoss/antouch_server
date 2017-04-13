@@ -8,9 +8,18 @@
 #include "xlib_wrapper.h"
 #include <X11/keysym.h>
 #include <X11/XF86keysym.h>
+#include <time.h>
+#include <printf.h>
+
+#include "key_defines.h"
 
 static Display* display = NULL;
 static XEvent* click_event = NULL;
+static time_t last_click = 0;
+
+
+static void xlw_mouse_fake_key_press(unsigned int btn);
+static void xlw_fake_key_press(KeySym keySym, KeySym modSym);
 
 void xlw_init()
 {
@@ -22,30 +31,42 @@ void xlw_close()
     XCloseDisplay(display);
 }
 
+// interface
+// move mouse pointer
 void xlw_mouse_move(int dx, int dy)
 {
     XTestFakeRelativeMotionEvent(display, dx, dy, 0);
     XFlush(display);
 }
 
-//void xlw_mouse_right_click()
-//{
-//    XEvent event;
-//    /* Get the current pointer position */
-//    XQueryPointer(display, RootWindow(display, 0), &event.xbutton.root,
-//                  &event.xbutton.window, &event.xbutton.x_root,
-//                  &event.xbutton.y_root, &event.xbutton.x, &event.xbutton.y,
-//                  &event.xbutton.state);
-//
-//    XSync(display, 0);
-//
-//    /* Fake the mouse button Press and Release events */
-//    XTestFakeButtonEvent(display, 1, True,  CurrentTime);
-//    XTestFakeButtonEvent(display, 1, False, CurrentTime);
-//    XFlush(display);
-//}
+// scroll by whele
+void xlw_mouse_scroll(int dy)
+{
+    if (dy < 0)
+        xlw_mouse_fake_key_press(Button4);
+    else
+        xlw_mouse_fake_key_press(Button5);
+}
 
-void xlw_mouse_click(unsigned int button)
+// press mouse key
+void xlw_mouse_key(int key)
+{
+    unsigned int button;
+    switch (key) {
+        case LEFT_CLICK:
+            button = Button1;
+            break;
+        case RIGHT_CLICK:
+            button = Button3;
+            break;
+        default:
+            return;
+    }
+    xlw_mouse_fake_key_press(button);
+}
+
+// hold on or hold off mouse text selection
+void xlw_half_mouse_click(int cmd)
 {
     XEvent event;
     /* Get the current pointer position */
@@ -57,16 +78,61 @@ void xlw_mouse_click(unsigned int button)
     XSync(display, 0);
 
     /* Fake the mouse button Press and Release events */
-    XTestFakeButtonEvent(display, button, True,  CurrentTime);
-    XTestFakeButtonEvent(display, button, False, CurrentTime);
+    XTestFakeButtonEvent(display, Button1, cmd,  CurrentTime);
 
     XFlush(display);
 }
 
-// todo deal with types
+// press keyboard key
+void xlw_key(int key)
+{
+    KeySym keySym;
+    switch (key)
+    {
+        case BUTTON_UP:
+            keySym = XK_Up;
+            break;
+        case BUTTON_DOWN:
+            keySym = XK_Down;
+            break;
+        case BUTTON_LEFT:
+            keySym = XK_Left;
+            break;
+        case BUTTON_RIGHT:
+            keySym = XK_Right;
+            break;
+        case BUTTON_VOL_DOWN:
+            keySym = XF86XK_AudioLowerVolume;
+            break;
+        case BUTTON_VOL_UP:
+            keySym = XF86XK_AudioRaiseVolume;
+            break;
+        default:
+            return;
+    }
+    xlw_fake_key_press(keySym, 0);
+}
+
+static void xlw_mouse_fake_key_press(unsigned int btn)
+{
+    XEvent event;
+    /* Get the current pointer position */
+    XQueryPointer(display, RootWindow(display, 0), &event.xbutton.root,
+                  &event.xbutton.window, &event.xbutton.x_root,
+                  &event.xbutton.y_root, &event.xbutton.x, &event.xbutton.y,
+                  &event.xbutton.state);
+
+    XSync(display, 0);
+
+    /* Fake the mouse button Press and Release events */
+    XTestFakeButtonEvent(display, btn, True,  CurrentTime);
+    XTestFakeButtonEvent(display, btn, False,  CurrentTime);
+
+    XFlush(display);
+}
 
 //https://bharathisubramanian.wordpress.com/2010/03/14/x11-fake-key-event-generation-using-xtest-ext/
-static void xlw_send_key_event(KeySym keySym, KeySym modSym)
+static void xlw_fake_key_press(KeySym keySym, KeySym modSym)
 {
     KeyCode keyCode = 0, modCode = 0;
     keyCode = XKeysymToKeycode(display, keySym);
@@ -90,80 +156,4 @@ static void xlw_send_key_event(KeySym keySym, KeySym modSym)
 
     XSync(display, False);
     XTestGrabControl(display, False);
-}
-
-//Here
-void xlw_key_press(unsigned int key_cmd)
-{
-    switch (key_cmd)
-    {
-        case 10:
-            xlw_send_key_event(XK_Up, 0);
-            break;
-        case 11:
-            xlw_send_key_event(XK_Down, 0);
-            break;
-        case 12:
-            xlw_send_key_event(XK_Left, 0);
-            break;
-        case 14:
-            xlw_send_key_event(XK_Right, 0);
-            break;
-        case 15:
-            xlw_send_key_event(XF86XK_AudioLowerVolume, 0);
-            break;
-        case 17:
-            xlw_send_key_event(XF86XK_AudioRaiseVolume, 0);
-            break;
-    }
-}
-
-void xlw_selection_mode()
-{
-    XEvent event;
-    /* Get the current pointer position */
-    XQueryPointer(display, RootWindow(display, 0), &event.xbutton.root,
-                  &event.xbutton.window, &event.xbutton.x_root,
-                  &event.xbutton.y_root, &event.xbutton.x, &event.xbutton.y,
-                  &event.xbutton.state);
-
-    XSync(display, 0);
-
-    /* Fake the mouse button Press and Release events */
-    XTestFakeButtonEvent(display, 1, True,  CurrentTime);
-
-    XFlush(display);
-}
-
-void xlw_test_up() {
-    XEvent event;
-    /* Get the current pointer position */
-    XQueryPointer(display, RootWindow(display, 0), &event.xbutton.root,
-                  &event.xbutton.window, &event.xbutton.x_root,
-                  &event.xbutton.y_root, &event.xbutton.x, &event.xbutton.y,
-                  &event.xbutton.state);
-
-    XSync(display, 0);
-
-    /* Fake the mouse button Press and Release events */
-    XTestFakeButtonEvent(display, 1, False,  CurrentTime);
-
-    XFlush(display);
-}
-
-void xlw_test_down() {
-    XEvent event;
-    /* Get the current pointer position */
-    XQueryPointer(display, RootWindow(display, 0), &event.xbutton.root,
-                  &event.xbutton.window, &event.xbutton.x_root,
-                  &event.xbutton.y_root, &event.xbutton.x, &event.xbutton.y,
-                  &event.xbutton.state);
-
-    XSync(display, 0);
-
-    /* Fake the mouse button Press and Release events */
-    XTestFakeButtonEvent(display, 1, True,  CurrentTime);
-
-    XFlush(display);
-
 }

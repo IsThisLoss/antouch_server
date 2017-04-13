@@ -11,6 +11,7 @@
 
 #include "antouch_server.h"
 #include "xlib_wrapper.h"
+#include "key_defines.h"
 
 //
 // Created by isthisloss on 18.02.17.
@@ -157,28 +158,28 @@ void response_cb(struct ev_loop* loop, struct ev_io* watcher, int revents)
         int dx = 0, dy = 0;
         sscanf(buff, "%u %d %d", &cmd, &dx, &dy);
 
-
-        if (cmd == 88)
-            xlw_test_down();
-        else if (cmd == 885)
-            xlw_test_up();
-
-
-
-
-
-        if (cmd == 18)
+        if (cmd < 10)
         {
-            xlw_selection_mode();
-            return;
+            xlw_half_mouse_click(cmd);
         }
-        if (cmd == 0)
+        else if (cmd < 20)
+        {
+            xlw_mouse_key(cmd);
+        }
+        else if (cmd == MOVE)
+        {
             xlw_mouse_move(dx, dy);
-        else if (cmd >= 10)
-            xlw_key_press(cmd);
+        }
+        else if (cmd == V_SCROLL)
+        {
+            xlw_mouse_scroll(dx);
+        }
         else
-            xlw_mouse_click(cmd);
+        {
+            xlw_key(cmd);
+        }
     }
+
 }
 
 char* get_ip_of_current_machine()
