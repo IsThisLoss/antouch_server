@@ -7,11 +7,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <ifaddrs.h>
-#include <errno.h>
 
 #include "antouch_server.h"
-#include "xlib_wrapper.h"
-#include "key_defines.h"
+#include "ProtoATCI.h"
 
 //
 // Created by isthisloss on 18.02.17.
@@ -24,7 +22,7 @@
 static struct ev_loop*  loop;
 static struct ev_io*    acceptor;
 static struct ev_io*    broadcast_watcher;
-
+static struct ProtoAtci* atci;
 
 static void acceptor_init();
 static void acceptor_close();
@@ -44,7 +42,7 @@ void antouch_server_init()
     loop = ev_default_loop(0);
     acceptor_init();
     broadcast_acceptor_init();
-    xlw_init();
+    atci = atci_init();
 }
 
 void antouch_server_start()
@@ -116,7 +114,7 @@ void broadcast_cb(struct ev_loop* loop, struct ev_io* watcher, int revent)
     {
         const char* ip = get_ip_of_current_machine();
         //const char* ip = inet_ntoa(dest_addr.sin_addr);
-        printf("Current local ip is %s\n, len = %d\n", ip, strlen(ip)+1);
+        printf("Current local ip is %s, len = %lu\n", ip, strlen(ip)+1);
         sendto(watcher->fd, ip, strlen(ip)+1, MSG_NOSIGNAL, (struct sockaddr*)&dest_addr, len);
     }
 }
@@ -136,12 +134,9 @@ void accept_cb(struct ev_loop* loop, struct ev_io* watcher, int revent)
 
 void response_cb(struct ev_loop* loop, struct ev_io* watcher, int revents)
 {
-    char buff[512];
-    ssize_t size = recv(watcher->fd, (void*)buff, sizeof(buff), MSG_NOSIGNAL);
-    printf("NET\tIncoming: ");
-    write(STDOUT_FILENO, buff, size);
-    printf("\n");
-    if (size == 0)
+    uint8_t head = 0;
+    ssize_t s = recv(watcher->fd, (char*)&head, sizeof(uint8_t), MSG_NOSIGNAL);
+    if (s == 0)
     {
         ev_io_stop(loop, watcher);
         close(watcher->fd);
@@ -154,32 +149,30 @@ void response_cb(struct ev_loop* loop, struct ev_io* watcher, int revents)
     }
     else
     {
-        unsigned int cmd = 0;
-        int dx = 0, dy = 0;
-        sscanf(buff, "%u %d %d", &cmd, &dx, &dy);
-
-        if (cmd < 10)
+        printf("head = 0x%X, head_body = 0x%X\n", head & 0x03, head >> 2);
+        uint8_t type = atci_get_type(head);
+        if (type == MOVE)
         {
-            xlw_half_mouse_click(cmd);
+            int16_t d[2];
+            recv(watcher->fd, (char*)&d, sizeof(d) * sizeof(int16_t), MSG_NOSIGNAL);
+            printf("%d %d\n", d[0], d[1]);
+            atci_mouse_move(atci, d[0], d[1]);
         }
-        else if (cmd < 20)
+        else if (type == COMMAND)
         {
-            xlw_mouse_key(cmd);
+            atci_command(atci, head);
         }
-        else if (cmd == MOVE)
+        else if (type == V_SCROLL)
         {
-            xlw_mouse_move(dx, dy);
-        }
-        else if (cmd == V_SCROLL)
-        {
-            xlw_mouse_scroll(dx);
+            int16_t dy;
+            recv(watcher->fd, (char*)&dy, sizeof(int16_t), MSG_NOSIGNAL);
+            atci_mouse_scroll(atci, dy);
         }
         else
         {
-            xlw_key(cmd);
+            return;
         }
     }
-
 }
 
 char* get_ip_of_current_machine()
@@ -202,7 +195,7 @@ char* get_ip_of_current_machine()
 void sig_term(int revents)
 {
     printf("NET\tApplication got the SIGTERM signal. Aborting...\n");
-    xlw_close();
+    atci_close(atci);
     acceptor_close();
     broadcast_acceptor_close();
     ev_break(loop, EVBREAK_ALL);
