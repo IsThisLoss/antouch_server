@@ -136,42 +136,44 @@ void response_cb(struct ev_loop* loop, struct ev_io* watcher, int revents)
 {
     uint8_t head = 0;
     ssize_t s = recv(watcher->fd, (char*)&head, sizeof(uint8_t), MSG_NOSIGNAL);
-    if (s == 0)
+    if (s != 0)
+    {
+        uint8_t type = atci_get_type(head);
+        if (type == ATCI_MOVE)
+        {
+            int16_t d[2];
+            recv(watcher->fd, (void*)&d, sizeof(d) * sizeof(int16_t), MSG_NOSIGNAL);
+            atci_mouse_move(atci, d[0], d[1]);
+        }
+        else if (type == ATCI_COMMAND)
+        {
+            atci_command(atci, head);
+        }
+        else if (type == ATCI_V_SCROLL)
+        {
+            int16_t dy;
+            recv(watcher->fd, (char*)&dy, sizeof(int16_t), MSG_NOSIGNAL);
+            atci_mouse_scroll(atci, dy);
+        }
+        else if (type == ATCI_TEXT)
+        {
+            atci->text_size = read(watcher->fd, (void*)atci->text, ATCI_TEXT_LIMIT);
+            atci->text[atci->text_size] = '\0';
+            atci_text(atci);
+        }
+        else
+        {
+            return;
+        }
+    }
+    else
     {
         ev_io_stop(loop, watcher);
         close(watcher->fd);
         free(watcher);
         ev_io_start(loop, acceptor);
         ev_io_start(loop, broadcast_watcher);
-        //acceptor_init();
-        //broadcast_acceptor_init();
         printf("NET\tAcceptor and Broadcast has been restarted\n");
-    }
-    else
-    {
-        printf("head = 0x%X, head_body = 0x%X\n", head & 0x03, head >> 2);
-        uint8_t type = atci_get_type(head);
-        if (type == MOVE)
-        {
-            int16_t d[2];
-            recv(watcher->fd, (char*)&d, sizeof(d) * sizeof(int16_t), MSG_NOSIGNAL);
-            printf("%d %d\n", d[0], d[1]);
-            atci_mouse_move(atci, d[0], d[1]);
-        }
-        else if (type == COMMAND)
-        {
-            atci_command(atci, head);
-        }
-        else if (type == V_SCROLL)
-        {
-            int16_t dy;
-            recv(watcher->fd, (char*)&dy, sizeof(int16_t), MSG_NOSIGNAL);
-            atci_mouse_scroll(atci, dy);
-        }
-        else
-        {
-            return;
-        }
     }
 }
 
