@@ -8,13 +8,12 @@
 #include <stdio.h>
 #include <ifaddrs.h>
 
-#include "antouch_server.h"
-#include "ProtoATCI.h"
+#include "AntouchServer.h"
+#include "ProtoAtci.h"
 
 //
 // Created by isthisloss on 18.02.17.
 //
-
 
 #define TCP_PORT 12345
 #define UDP_PORT 12346
@@ -24,17 +23,58 @@ static struct ev_io*    acceptor;
 static struct ev_io*    broadcast_watcher;
 static struct ProtoAtci* atci;
 
+/**
+ * @brief creates socket for listening new connections
+ * and makes acceptor watcher
+ */
 static void acceptor_init();
+
+/**
+ * @brief stops and frees acceptor watcher and closes listening socket
+ */
 static void acceptor_close();
+
+/**
+ * @brief creates socket and watcher for listening broadcast requests
+ */
 static void broadcast_acceptor_init();
+
+/**
+ * @brief close broadcast watcher and broadcast socket
+ */
 static void broadcast_acceptor_close();
 
+/**
+ * @brief callback to accept new connection
+ *
+ * @param loop is a default libev-loop
+ * @param watcher is a {@link acceptor} watcher
+ */
 static void accept_cb(struct ev_loop* loop, struct ev_io* watcher, int);
+
+/**
+ * @brief callback to regular TCP requests
+ * @param loop is a default libev-loop
+ * @param watcher is a watcher of current connection
+ */
 static void response_cb(struct ev_loop* loop, struct ev_io* watcher, int);
+
+/**
+ * @brief callback to broadcasts requests
+ * @param loop is a default libev-loop
+ * @param watcher is the {@link broadcast_watcher}
+ */
 static void broadcast_cb(struct ev_loop* loop, struct ev_io* watcher, int);
 
+/**
+ * @brief handler of SIGTERM signal
+ */
 static void sig_term(int);
 
+/**
+ * @brief get ip of the machine in current wifi network
+ * @return ip os current station
+ */
 static char* get_ip_of_current_machine();
 
 void antouch_server_init()

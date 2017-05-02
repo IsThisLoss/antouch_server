@@ -4,8 +4,8 @@
 #include <X11/XF86keysym.h>
 #include <stdint.h>
 
-#include "ProtoATCI.h"
-#include "xlib_wrapper.h"
+#include "ProtoAtci.h"
+#include "XlibWrapper.h"
 
 //
 // Created by isthisloss on 15.04.17.

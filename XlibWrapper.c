@@ -2,7 +2,7 @@
 #include <X11/extensions/XTest.h>
 #include <stdint.h>
 
-#include "xlib_wrapper.h"
+#include "XlibWrapper.h"
 
 //
 // Created by isthisloss on 13.01.17.

@@ -1,12 +1,12 @@
-//
-// Created by isthisloss on 15.04.17.
-//
-
 #ifndef ANTOUCH_SERVER_PROTOATCI_H
 #define ANTOUCH_SERVER_PROTOATCI_H
 
 #include <X11/Xlib.h>
 #include <xdo.h>
+
+//
+// Created by isthisloss on 15.04.17.
+//
 
 #define ATCI_COMMAND  0x00
 #define ATCI_V_SCROLL  0x01
@@ -40,6 +40,10 @@
 #define ATCI_KEY_SYMS_SIZE 14
 #define ATCI_TEXT_LIMIT 256
 
+/**
+ * @struct ProtoAtci is a structure which contains
+ * important information and references to support ATCI protocol
+ */
 struct ProtoAtci
 {
     KeySym key_syms[ATCI_KEY_SYMS_SIZE];
@@ -50,13 +54,51 @@ struct ProtoAtci
 };
 
 
+/**
+ * @brief some sort of constructor of {@link ProtoAtci} structure
+ * @return instance of {@link ProtoAtci}
+ */
 struct ProtoAtci* atci_init();
+
+/**
+ * @brief "destructor" of {@link ProtoAtci} structure
+ * @param atci is a object to destroy
+ */
 void atci_close(struct ProtoAtci* atci);
 
+/**
+ * @brief get type of ATCI-message by its head
+ * @param head is a head of current ATCI-message
+ * @return is a type of pending message
+ */
 uint8_t atci_get_type(uint8_t head);
+
+/**
+ * @brief processes one-key command
+ * @param atci is a instance of ProtoAtci structure
+ * @param head is a head of ATCI-message with command to execute
+ */
 void atci_command(struct ProtoAtci* atci, uint8_t head);
+
+/**
+ * @brief processes mouse move command
+ * @param atci is a instance of ProtoAtci structure
+ * @param dx is a offset by horizontal axis
+ * @param dy is a offset by vertical axis
+ */
 void atci_mouse_move(struct ProtoAtci* atci, int dx, int dy);
+
+/**
+ * @brief processes mouse scroll event
+ * @param atci is a instance of ProtoAtci structure
+ * @param dy is a vertical offset [IN FACT IT IS NOT USED]
+ */
 void atci_mouse_scroll(struct ProtoAtci* atci, int dy);
+
+/**
+ * @brief emulate text input
+ * @param atci is a ProtoAtci instance which contains text to type
+ */
 void atci_text(struct ProtoAtci* atci);
 
 
