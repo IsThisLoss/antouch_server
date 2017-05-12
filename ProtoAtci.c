@@ -16,6 +16,9 @@ struct ProtoAtci* atci_init()
 {
     struct ProtoAtci* atci = (struct ProtoAtci*)malloc(sizeof(struct ProtoAtci));
 
+    atci->key_syms = (KeySym*)malloc(ATCI_KEY_SYMS_SIZE * sizeof(KeySym));
+    atci->text = (char*)malloc(256 * sizeof(char));
+
     atci->display = xlw_get_display();
     atci->xdo = xdo_new_with_opened_display(atci->display, NULL, 0);
 

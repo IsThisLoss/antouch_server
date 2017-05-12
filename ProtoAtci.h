@@ -46,9 +46,9 @@
  */
 struct ProtoAtci
 {
-    KeySym key_syms[ATCI_KEY_SYMS_SIZE];
+    KeySym* key_syms;
     Display* display;
-    char text[256];
+    char* text;
     ssize_t text_size;
     xdo_t* xdo;
 };
