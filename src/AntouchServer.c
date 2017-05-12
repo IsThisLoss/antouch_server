@@ -182,7 +182,7 @@ void response_cb(struct ev_loop* loop, struct ev_io* watcher, int revents)
         if (type == ATCI_MOVE)
         {
             int16_t d[2];
-            recv(watcher->fd, (void*)&d, sizeof(d) * sizeof(int16_t), MSG_NOSIGNAL);
+            recv(watcher->fd, (char*)&d, 2 * sizeof(int16_t), MSG_NOSIGNAL);
             atci_mouse_move(atci, d[0], d[1]);
         }
         else if (type == ATCI_COMMAND)

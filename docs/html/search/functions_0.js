@@ -1,0 +1,12 @@
+var searchData=
+[
+  ['antouch_5fserver_5finit',['antouch_server_init',['../_antouch_server_8c.html#aa8f8a2524465e2829df1ae5b90323651',1,'antouch_server_init():&#160;AntouchServer.c'],['../_antouch_server_8h.html#aa8f8a2524465e2829df1ae5b90323651',1,'antouch_server_init():&#160;AntouchServer.c']]],
+  ['antouch_5fserver_5fstart',['antouch_server_start',['../_antouch_server_8c.html#aee35047afb1a7ebc102232335489d279',1,'antouch_server_start():&#160;AntouchServer.c'],['../_antouch_server_8h.html#aee35047afb1a7ebc102232335489d279',1,'antouch_server_start():&#160;AntouchServer.c']]],
+  ['atci_5fclose',['atci_close',['../_proto_atci_8c.html#a67048f0da0bd70e3248d64bc7b5fd0ea',1,'atci_close(struct ProtoAtci *atci):&#160;ProtoAtci.c'],['../_proto_atci_8h.html#a67048f0da0bd70e3248d64bc7b5fd0ea',1,'atci_close(struct ProtoAtci *atci):&#160;ProtoAtci.c']]],
+  ['atci_5fcommand',['atci_command',['../_proto_atci_8c.html#a974598cae0b74cd8fbd29b58ffec8281',1,'atci_command(struct ProtoAtci *atci, uint8_t head):&#160;ProtoAtci.c'],['../_proto_atci_8h.html#a974598cae0b74cd8fbd29b58ffec8281',1,'atci_command(struct ProtoAtci *atci, uint8_t head):&#160;ProtoAtci.c']]],
+  ['atci_5fget_5ftype',['atci_get_type',['../_proto_atci_8c.html#a2dbbfe0d060132a649b05d901d3b0bc8',1,'atci_get_type(uint8_t head):&#160;ProtoAtci.c'],['../_proto_atci_8h.html#a2dbbfe0d060132a649b05d901d3b0bc8',1,'atci_get_type(uint8_t head):&#160;ProtoAtci.c']]],
+  ['atci_5finit',['atci_init',['../_proto_atci_8c.html#a7389c46a69cd484e2f07595c9383a454',1,'atci_init():&#160;ProtoAtci.c'],['../_proto_atci_8h.html#a7389c46a69cd484e2f07595c9383a454',1,'atci_init():&#160;ProtoAtci.c']]],
+  ['atci_5fmouse_5fmove',['atci_mouse_move',['../_proto_atci_8c.html#aa71af5e07d5f4da2ce44f1a5f752278e',1,'atci_mouse_move(struct ProtoAtci *atci, int dx, int dy):&#160;ProtoAtci.c'],['../_proto_atci_8h.html#aa71af5e07d5f4da2ce44f1a5f752278e',1,'atci_mouse_move(struct ProtoAtci *atci, int dx, int dy):&#160;ProtoAtci.c']]],
+  ['atci_5fmouse_5fscroll',['atci_mouse_scroll',['../_proto_atci_8c.html#ab08e18bac0074a9148152c6cf0ab8de8',1,'atci_mouse_scroll(struct ProtoAtci *atci, int dy):&#160;ProtoAtci.c'],['../_proto_atci_8h.html#ab08e18bac0074a9148152c6cf0ab8de8',1,'atci_mouse_scroll(struct ProtoAtci *atci, int dy):&#160;ProtoAtci.c']]],
+  ['atci_5ftext',['atci_text',['../_proto_atci_8c.html#af2454176ab5f1417613079797f117e63',1,'atci_text(struct ProtoAtci *atci):&#160;ProtoAtci.c'],['../_proto_atci_8h.html#af2454176ab5f1417613079797f117e63',1,'atci_text(struct ProtoAtci *atci):&#160;ProtoAtci.c']]]
+];
